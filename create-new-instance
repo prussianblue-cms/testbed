@@ -1,0 +1,25 @@
+#! /bin/zsh
+
+# Clone the repository (not using create-project because DDEV is not available at this point yet)
+echo "Cloning the prussianblue-cms/project-template repo into ./prussianblue"
+git clone git@github.com:prussianblue-cms/project-template.git prussianblue
+
+# Replace the site name with a random string in .ddev/config.yml
+instance_id=`xxd -l 8 -c 8 -p < /dev/random`
+echo $instance_id > prussianblue/instance-id
+
+echo "Replacing the site name in .ddev/config.yaml with pretty gibberish: ({$instance_id})."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s/prussianblue-rebuild/${instance_id}/g" prussianblue/.ddev/config.yaml
+else
+  sed -i "s/prussianblue-rebuild/${instance_id}/g" prussianblue/.ddev/config.yaml
+fi
+
+cd prussianblue
+ddev start
+ddev composer install
+ddev pb-reinstall-site
+ddev launch
+ddev drush uli | pbcopy
+
+echo "The login URL for admin was copied to the clipboard."
